@@ -10,14 +10,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import io.smallrye.mutiny.Uni;
+import iot.meters.streams.MeterAggregatedInteractiveQuery;
 import iot.meters.streams.MeterUpdateInteractiveQuery;
 
 @ApplicationScoped
 @Path("/")
-public class MeterUpdateResource {
+public class MeterResource {
 
     @Inject
     MeterUpdateInteractiveQuery meterUpdateInteractiveQuery;
+
+    @Inject
+    MeterAggregatedInteractiveQuery meterAggregatedInteractiveQuery;
 
     @GET
     @Path("/meter/{id}")
@@ -28,6 +32,19 @@ public class MeterUpdateResource {
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
             } else {
                 return Response.ok(meterUpdate).build();
+            }
+        });
+    }
+
+    @GET
+    @Path("/street/{street}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<Response> getMeterStatusPerStreet(@PathParam("street") String street) {
+        return meterAggregatedInteractiveQuery.getMeterStatus(street).onItem().transform(meterStatus -> {
+            if (meterStatus == null || meterStatus.isEmpty()) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+            } else {
+                return Response.ok(meterStatus).build();
             }
         });
     }
