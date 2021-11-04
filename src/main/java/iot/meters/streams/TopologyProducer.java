@@ -10,7 +10,6 @@ import io.vertx.core.json.JsonObject;
 import iot.meters.model.Aggregation;
 import iot.meters.model.MeterInfo;
 import iot.meters.model.MeterUpdate;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
@@ -98,13 +97,6 @@ public class TopologyProducer {
                         KeyValueStore<Bytes, byte[]>>as(iotMetersAggregatedStore).withKeySerde(Serdes.String()).withValueSerde(aggregationSerde));
 
         builder.stream(iotMetersTopic, Consumed.with(Serdes.String(), Serdes.String()))
-                .map((k, v) -> {
-                    if (k.startsWith("\"")) {
-                        return KeyValue.pair(StringUtils.strip(k, "\""), v);
-                    } else {
-                        return KeyValue.pair(k, v);
-                    }
-                })
                 .toTable(Materialized.<String, String, KeyValueStore<Bytes, byte[]>>as(iotMetersUpdateStore).withKeySerde(Serdes.String()).withValueSerde(Serdes.String()));
 
         Topology topology = builder.build();
